@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>백태진 — Civil Engineer Portfolio</title>
+<meta name="description" content="토목 엔지니어 백태진의 현장 이력 및 자체 제작 업무 자동화 도구 모음">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
+<style>
+/* ============================================================
+   디자인 토큰
+   ============================================================ */
+:root {
+  --ink:        #0d1b2a;   /* 청사진 잉크 */
+  --ink-soft:   #1f3349;
+  --paper:      #f5f1ea;   /* 따뜻한 종이 */
+  --paper-dim:  #e8e2d5;
+  --concrete:   #8b8680;   /* 콘크리트 그레이 */
+  --rust:       #c1440e;   /* 산화 오렌지 (안전·강철) */
+  --rust-dim:   #e8a17a;
+  --line:       rgba(13, 27, 42, 0.12);
+  --line-strong: rgba(13, 27, 42, 0.4);
+
+  --serif: 'Fraunces', 'Noto Serif KR', Georgia, serif;
+  --sans:  'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  --mono:  'JetBrains Mono', 'Consolas', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  font-size: 16px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 종이 질감 노이즈 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.1 0 0 0 0 0.16 0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+}
+
+/* 청사진 그리드 (전체 배경) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 80px 80px;
+  opacity: 0.5;
+}
+
+/* ============================================================
+   상단 바
+   ============================================================ */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  padding: 18px 32px;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, var(--paper) 60%, transparent);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.topbar .brand {
+  font-family: var(--serif);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.topbar nav { display: flex; gap: 24px; }
+.topbar nav a {
+  color: var(--ink);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.2s;
+}
+.topbar nav a:hover { color: var(--rust); }
+.topbar nav a::before {
+  content: '◦';
+  margin-right: 6px;
+  color: var(--concrete);
+  transition: color 0.2s;
+}
+.topbar nav a:hover::before { color: var(--rust); content: '●'; }
+
+@media (max-width: 720px) {
+  .topbar { padding: 14px 20px; }
+  .topbar nav { display: none; }
+}
+
+/* ============================================================
+   섹션 공통
+   ============================================================ */
+section {
+  position: relative;
+  z-index: 2;
+  padding: 100px 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+@media (max-width: 720px) {
+  section { padding: 70px 20px; }
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::before {
+  content: '';
+  width: 28px; height: 1px;
+  background: var(--rust);
+}
+
+.section-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 40px;
+}
+.section-title em {
+  font-style: italic;
+  color: var(--rust);
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 120px;
+  padding-bottom: 80px;
+}
+.hero-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 60px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.hero-meta span { display: flex; align-items: center; gap: 8px; }
+.hero-meta .marker { color: var(--rust); font-size: 14px; }
+
+.hero-name {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(3.5rem, 12vw, 9rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  margin-bottom: 12px;
+  animation: revealUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.hero-name em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--rust);
+}
+.hero-subname {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--concrete);
+  margin-bottom: 60px;
+  animation: revealUp 1.2s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.hero-tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  line-height: 1.3;
+  max-width: 720px;
+  margin-bottom: 40px;
+  animation: revealUp 1.2s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.hero-tagline strong {
+  font-style: normal;
+  font-weight: 600;
+  border-bottom: 2px solid var(--rust);
+  padding-bottom: 2px;
+}
+
+.hero-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+  flex-wrap: wrap;
+  gap: 20px;
+  animation: revealUp 1.2s 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.hero-coords {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--concrete);
+  letter-spacing: 0.05em;
+}
+.hero-coords div { margin-bottom: 4px; }
+.hero-scroll {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hero-scroll .line {
+  display: inline-block;
+  width: 60px; height: 1px;
+  background: var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+.hero-scroll .line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--rust);
+  animation: slideRight 2.5s ease-in-out infinite;
+}
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideRight {
+  0% { transform: translateX(-100%); }
+  60% { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ============================================================
+   ABOUT
+   ============================================================ */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 80px;
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .about-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+
+.about-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 2;
+  border-top: 1px solid var(--ink);
+  padding-top: 20px;
+}
+.about-meta .row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed var(--line);
+  padding: 8px 0;
+}
+.about-meta .key {
+  color: var(--concrete);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+.about-meta .val { color: var(--ink); }
+
+.about-text {
+  font-size: 17px;
+  line-height: 1.8;
+}
+.about-text p { margin-bottom: 1.2em; }
+.about-text p:first-child::first-letter {
+  font-family: var(--serif);
+  font-weight: 800;
+  font-size: 4.5em;
+  float: left;
+  line-height: 0.85;
+  margin: 0.05em 0.1em 0 0;
+  color: var(--rust);
+}
+
+/* ============================================================
+   CAREER / 현장 이력
+   ============================================================ */
+.career-list {
+  display: flex;
+  flex-direction: column;
+}
+.career-item {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 32px;
+  padding: 32px 0;
+  border-top: 1px solid var(--ink);
+  align-items: start;
+  position: relative;
+  transition: padding-left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  cursor: default;
+}
+.career-item:last-child { border-bottom: 1px solid var(--ink); }
+.career-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 32px;
+  width: 8px; height: 8px;
+  background: var(--rust);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.career-item:hover { padding-left: 24px; }
+.career-item:hover::before { opacity: 1; transform: translateX(0); }
+
+.career-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--concrete);
+  letter-spacing: 0.05em;
+  padding-top: 6px;
+}
+.career-info h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  line-height: 1.2;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.career-info .meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--concrete);
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.career-info .desc {
+  font-size: 14px;
+  color: var(--ink-soft);
+  max-width: 600px;
+}
+.career-period {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+  text-align: right;
+  padding-top: 6px;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .career-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .career-period { text-align: left; }
+}
+
+/* ============================================================
+   TOOLS / 도구 모음
+   ============================================================ */
+.tools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 880px) {
+  .tools-grid { grid-template-columns: 1fr; }
+}
+
+.tool-card {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 36px;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 380px;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tool-card:hover { transform: translateY(-6px); }
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(245, 241, 234, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(245, 241, 234, 0.06) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+}
+
+.tool-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--rust-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+  position: relative;
+}
+.tool-name {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.9rem;
+  line-height: 1.15;
+  margin-bottom: 8px;
+  position: relative;
+  letter-spacing: -0.01em;
+}
+.tool-name em {
+  font-style: italic;
+  color: var(--rust-dim);
+}
+.tool-version {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--rust-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+  position: relative;
+}
+.tool-desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(245, 241, 234, 0.75);
+  margin-bottom: 32px;
+  position: relative;
+  flex: 1;
+}
+.tool-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+  position: relative;
+}
+.tool-stack span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  padding: 4px 9px;
+  border: 1px solid rgba(245, 241, 234, 0.25);
+  color: rgba(245, 241, 234, 0.85);
+  text-transform: uppercase;
+}
+.tool-cta {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--rust-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  transition: gap 0.3s;
+}
+.tool-card:hover .tool-cta { gap: 16px; color: var(--paper); }
+.tool-cta::after {
+  content: '→';
+  font-family: var(--sans);
+  font-size: 16px;
+}
+
+/* ============================================================
+   SKILLS
+   ============================================================ */
+.skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+}
+@media (max-width: 720px) {
+  .skills-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+.skill-block h3 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 8px;
+}
+.skill-block ul { list-style: none; }
+.skill-block li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 14px;
+}
+.skill-block li .label { color: var(--ink); }
+.skill-block li .level {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--concrete);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   CONTACT
+   ============================================================ */
+.contact {
+  background: var(--ink);
+  color: var(--paper);
+  margin-top: 80px;
+  padding: 100px 32px;
+  position: relative;
+  z-index: 2;
+  max-width: none;
+}
+.contact-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.contact .section-label { color: var(--rust-dim); }
+.contact .section-label::before { background: var(--rust-dim); }
+.contact-headline {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 40px;
+}
+.contact-headline em {
+  font-style: italic;
+  color: var(--rust-dim);
+}
+.contact-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-top: 60px;
+}
+.contact-item {
+  border-top: 1px solid rgba(245, 241, 234, 0.25);
+  padding-top: 16px;
+}
+.contact-item .key {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--rust-dim);
+  margin-bottom: 8px;
+}
+.contact-item a, .contact-item .val {
+  color: var(--paper);
+  text-decoration: none;
+  font-size: 18px;
+  font-family: var(--serif);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.contact-item a:hover { border-bottom-color: var(--rust-dim); }
+
+.footer {
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(245, 241, 234, 0.2);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: rgba(245, 241, 234, 0.5);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ============================================================
+   섹션 진입 애니메이션
+   ============================================================ */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     상단 바
+     ============================================================ -->
+<header class="topbar">
+  <div class="brand">B<em style="color:var(--rust);">·</em>TJ</div>
+  <nav>
+    <a href="#about">소개</a>
+    <a href="#career">현장 이력</a>
+    <a href="#tools">도구</a>
+    <a href="#skills">역량</a>
+    <a href="#contact">연락</a>
+  </nav>
+</header>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero">
+  <div class="hero-meta">
+    <span><span class="marker">+</span> PORTFOLIO / 2026</span>
+    <span>DWG · 001 / 005</span>
+    <span>SEOUL, KR</span>
+  </div>
+
+  <h1 class="hero-name">
+    백<em>태진</em><br>
+    <span style="font-size:0.5em; letter-spacing:-0.02em; color:var(--concrete); font-weight:400;">BAEK · TAEJIN</span>
+  </h1>
+  <div class="hero-subname">CIVIL ENGINEER × TOOL BUILDER</div>
+
+  <p class="hero-tagline">
+    도면 위에서 일하고,<br>
+    <strong>코드로 반복을 줄입니다.</strong><br>
+    현장의 비효율을 자동화로 옮기는 토목 엔지니어.
+  </p>
+
+  <div class="hero-bottom">
+    <div class="hero-coords">
+      <div>+ E 126°58′42″ N 37°33′58″</div>
+      <div>+ EST. 20XX · BASED IN SEOUL</div>
+    </div>
+    <div class="hero-scroll">
+      SCROLL <span class="line"></span> 아래로
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ABOUT
+     ============================================================ -->
+<section id="about" class="fade-in">
+  <div class="section-label">01 / ABOUT</div>
+  <h2 class="section-title">현장에서 도면, <em>도면에서 코드</em>로.</h2>
+
+  <div class="about-grid">
+    <div class="about-meta">
+      <div class="row"><span class="key">Name</span><span class="val">백태진 (Baek Taejin)</span></div>
+      <div class="row"><span class="key">Role</span><span class="val">Civil Engineer</span></div>
+      <div class="row"><span class="key">Field</span><span class="val">토목 시공 / 설계변경</span></div>
+      <div class="row"><span class="key">Tool</span><span class="val">HTML · JS · Excel</span></div>
+      <div class="row"><span class="key">Location</span><span class="val">Seoul, Republic of Korea</span></div>
+      <div class="row"><span class="key">Status</span><span class="val" style="color:var(--rust);">● Available</span></div>
+    </div>
+
+    <div class="about-text">
+      <p>
+        토목 현장에서 일하며, 반복적으로 손이 가는 업무를 직접 코드로 줄여 왔습니다.
+        품셈 검색, 일위대가 작성, 설계변경 보고서 — 매번 같은 양식을 다시 짜는 일을
+        한 번 만들어 두고 모두가 쓸 수 있도록 만드는 데에 관심이 많습니다.
+      </p>
+      <p>
+        개발 전공자는 아니지만, 단일 HTML 파일 형태의 가벼운 도구로
+        실제 현장 업무를 자동화해 왔습니다. PDF 품셈 자료에서 단가를 검색하고,
+        설계변경 다중 시트 엑셀 보고서를 한 번에 생성하는 도구가 그 결과물입니다.
+      </p>
+      <p>
+        앞으로도 <strong style="color:var(--rust);">"현장 사람이 만드는 현장용 도구"</strong>를
+        고집하려 합니다. 실무를 알고 만든 도구가 가장 오래 살아남으니까요.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CAREER / 현장 이력
+     ============================================================ -->
+<section id="career" class="fade-in">
+  <div class="section-label">02 / CAREER · FIELD SITES</div>
+  <h2 class="section-title">근무 현장 <em>이력</em></h2>
+
+  <div class="career-list">
+
+    <!-- ⬇⬇⬇ 본인 정보로 수정하세요 ⬇⬇⬇ -->
+
+    <div class="career-item">
+      <div class="career-num">FS · 005</div>
+      <div class="career-info">
+        <h3>○○○ 도로 확장공사 현장</h3>
+        <div class="meta">SITE ENGINEER · ROAD WORK · KOREA</div>
+        <p class="desc">2차로 → 4차로 확장. 토공·배수공·구조물공 시공 관리, 설계변경 다수 처리.</p>
+      </div>
+      <div class="career-period">2024 — 현재</div>
+    </div>
+
+    <div class="career-item">
+      <div class="career-num">FS · 004</div>
+      <div class="career-info">
+        <h3>○○ 신도시 단지 조성공사</h3>
+        <div class="meta">FIELD ENGINEER · SITE DEVELOPMENT</div>
+        <p class="desc">대지 조성 및 우·오수 관로 시공. 일위대가 작성 및 기성 산출 담당.</p>
+      </div>
+      <div class="career-period">2022 — 2024</div>
+    </div>
+
+    <div class="career-item">
+      <div class="career-num">FS · 003</div>
+      <div class="career-info">
+        <h3>○○천 하천정비공사</h3>
+        <div class="meta">JUNIOR ENGINEER · RIVER WORK</div>
+        <p class="desc">호안 및 제방 공사. 물량 산출 및 시공 도면 검토.</p>
+      </div>
+      <div class="career-period">2020 — 2022</div>
+    </div>
+
+    <div class="career-item">
+      <div class="career-num">FS · 002</div>
+      <div class="career-info">
+        <h3>○○ 교량 가설공사</h3>
+        <div class="meta">JUNIOR ENGINEER · BRIDGE</div>
+        <p class="desc">PSC 빔 가설 및 교량 받침 시공 보조. 시공계획서 작성 참여.</p>
+      </div>
+      <div class="career-period">2019 — 2020</div>
+    </div>
+
+    <div class="career-item">
+      <div class="career-num">FS · 001</div>
+      <div class="career-info">
+        <h3>○○ 공동주택 부지조성</h3>
+        <div class="meta">INTERN · SITE PREPARATION</div>
+        <p class="desc">최초 현장 경험. 측량·검측 보조 및 일일공정보고 작성.</p>
+      </div>
+      <div class="career-period">2018 — 2019</div>
+    </div>
+
+    <!-- ⬆⬆⬆ 본인 정보로 수정하세요 ⬆⬆⬆ -->
+
+  </div>
+</section>
+
+<!-- ============================================================
+     TOOLS / 도구 모음
+     ============================================================ -->
+<section id="tools" class="fade-in">
+  <div class="section-label">03 / SELF-MADE TOOLS</div>
+  <h2 class="section-title">현장에서 쓰는 <em>나만의 도구</em></h2>
+
+  <div class="tools-grid">
+
+    <!-- 도구 1: 품셈검색기 -->
+    <a href="#" class="tool-card" target="_blank" rel="noopener">
+      <div class="tool-num">TOOL · 01</div>
+      <div class="tool-name">토목 품셈 <em>검색기</em></div>
+      <div class="tool-version">v8 · SINGLE-FILE HTML</div>
+      <p class="tool-desc">
+        품셈 · 일위대가 · 노임단가 · 자재단가 · 표준시장단가 5종 자료를 PDF/XLSX로 업로드하여
+        한 번에 통합 검색. 결과 항목 선택 후 엑셀로 일괄 내보내기.
+      </p>
+      <div class="tool-stack">
+        <span>HTML</span><span>PDF.js</span><span>SheetJS</span><span>ExcelJS</span>
+      </div>
+      <div class="tool-cta">바로 사용하기</div>
+    </a>
+
+    <!-- 도구 2: 설계변경 자동생성기 -->
+    <a href="#" class="tool-card" target="_blank" rel="noopener">
+      <div class="tool-num">TOOL · 02</div>
+      <div class="tool-name">설계변경 <em>자동생성기</em></div>
+      <div class="tool-version">v1 · SINGLE-FILE HTML</div>
+      <p class="tool-desc">
+        공사명과 5종 자료 입력만으로 일위대가목록표 · 대가호표 · 단·산 · 품셈 ·
+        노무비 · 경비 · 재료비까지 다중 시트 엑셀 보고서를 한 번에 생성.
+      </p>
+      <div class="tool-stack">
+        <span>HTML</span><span>JavaScript</span><span>ExcelJS</span><span>localStorage</span>
+      </div>
+      <div class="tool-cta">바로 사용하기</div>
+    </a>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     SKILLS
+     ============================================================ -->
+<section id="skills" class="fade-in">
+  <div class="section-label">04 / CAPABILITIES</div>
+  <h2 class="section-title">갖추고 있는 <em>역량</em></h2>
+
+  <div class="skills-grid">
+
+    <div class="skill-block">
+      <h3>Civil Engineering</h3>
+      <ul>
+        <li><span class="label">시공 관리 (현장 운영, 공정 관리)</span><span class="level">●●●●○</span></li>
+        <li><span class="label">설계변경 · 일위대가 작성</span><span class="level">●●●●●</span></li>
+        <li><span class="label">물량 산출 · 기성 산출</span><span class="level">●●●●○</span></li>
+        <li><span class="label">표준품셈 · 단가 분석</span><span class="level">●●●●●</span></li>
+        <li><span class="label">CAD · 도면 검토</span><span class="level">●●●○○</span></li>
+      </ul>
+    </div>
+
+    <div class="skill-block">
+      <h3>Tool Building</h3>
+      <ul>
+        <li><span class="label">HTML · CSS · JavaScript (Vanilla)</span><span class="level">●●●○○</span></li>
+        <li><span class="label">PDF.js — PDF 자료 파싱</span><span class="level">●●●○○</span></li>
+        <li><span class="label">SheetJS · ExcelJS — 엑셀 자동화</span><span class="level">●●●●○</span></li>
+        <li><span class="label">단일 파일 배포 도구 설계</span><span class="level">●●●●○</span></li>
+        <li><span class="label">실무 워크플로우 기반 UI 설계</span><span class="level">●●●●●</span></li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     CONTACT
+     ============================================================ -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <div class="section-label">05 / GET IN TOUCH</div>
+    <h2 class="contact-headline">
+      함께 만들 <em>현장이</em><br>있다면.
+    </h2>
+
+    <div class="contact-list">
+      <div class="contact-item">
+        <div class="key">Email</div>
+        <a href="mailto:civiltaejin87@gmail.com">civiltaejin87@gmail.com</a>
+      </div>
+      <div class="contact-item">
+        <div class="key">GitHub</div>
+        <a href="https://github.com/civiltaejin87" target="_blank" rel="noopener">github.com/civiltaejin87</a>
+      </div>
+      <div class="contact-item">
+        <div class="key">Phone</div>
+        <span class="val">+82 10-XXXX-XXXX</span>
+      </div>
+      <div class="contact-item">
+        <div class="key">Based in</div>
+        <span class="val">Seoul, KR</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>© 2026 BAEK TAEJIN · BUILT WITH HTML &amp; INTENTION</div>
+      <div>DWG · 005 / 005 · END OF DRAWING</div>
+    </div>
+  </div>
+</section>
+
+<script>
+// 스크롤 진입 애니메이션
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
