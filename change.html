@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>설계변경 자동생성 · by 뷁</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<style>
+:root{
+  --teal:#1D9E75;--teal-d:#0F6E56;--teal-l:#E1F5EE;--teal-m:#5DCAA5;
+  --blue:#0C447C;--blue-l:#E6F1FB;
+  --g50:#F8F9FA;--g100:#F1F3F5;--g200:#E9ECEF;--g300:#DEE2E6;
+  --g400:#CED4DA;--g500:#ADB5BD;--g600:#6C757D;--g700:#495057;
+  --g800:#343A40;--g900:#212529;
+  --rsm:8px;--rmd:12px;--rlg:16px;
+  --s1:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --s2:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#F4F6F4;color:var(--g900);min-height:100vh;overflow-x:hidden;}
+.wm{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;}
+.wmt{font-size:320px;font-weight:700;color:var(--teal);opacity:.05;letter-spacing:-8px;user-select:none;line-height:1;}
+.page{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+
+/* 헤더 */
+.hdr{text-align:center;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--g200);}
+.logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:6px;}
+.logo-b{width:36px;height:36px;border-radius:10px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;}
+.hdr h1{font-size:22px;font-weight:600;}
+.hdr p{font-size:13px;color:var(--g500);margin-top:4px;}
+.lbl{font-size:11px;font-weight:600;color:var(--g500);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;}
+
+/* 공사명 */
+.gongsa-bar{background:#fff;border:1.5px solid var(--teal-m);border-radius:var(--rmd);padding:14px 18px;margin-bottom:1.25rem;box-shadow:var(--s1);display:flex;align-items:center;gap:12px;}
+.gongsa-lbl{font-size:13px;font-weight:600;color:var(--teal-d);white-space:nowrap;}
+.gongsa-inp{flex:1;height:38px;padding:0 12px;border:1.5px solid var(--g300);border-radius:var(--rsm);font-size:14px;font-family:inherit;background:var(--g50);color:var(--g900);outline:none;}
+.gongsa-inp:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(29,158,117,.12);}
+
+/* 업로드 */
+.ugrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:.75rem;}
+.uz{background:#fff;border:1.5px dashed var(--g300);border-radius:var(--rmd);padding:16px 8px 12px;text-align:center;cursor:pointer;transition:all .15s;box-shadow:var(--s1);}
+.uz:hover,.uz.dov{border-color:var(--teal);background:var(--teal-l);transform:translateY(-1px);box-shadow:var(--s2);}
+.uz.hf{border-color:var(--teal);border-style:solid;background:var(--teal-l);}
+.uz-ic{width:30px;height:30px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--g100);}
+.uz.hf .uz-ic,.uz.dov .uz-ic{background:rgba(29,158,117,.15);}
+.uz-t{font-size:12px;font-weight:600;color:var(--g800);margin-bottom:3px;}
+.uz-h{font-size:10px;color:var(--g500);line-height:1.4;}
+.uz-c{font-size:10px;font-weight:600;color:var(--teal-d);margin-top:5px;min-height:14px;}
+.notice-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--rsm);margin-bottom:1rem;font-size:11px;color:#92400E;}
+
+/* 파일 목록 */
+.flist{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem;}
+.fi{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--g200);border-radius:var(--rsm);padding:8px 12px;box-shadow:var(--s1);}
+.bdg{font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;flex-shrink:0;}
+.bp{background:#FAECE7;color:#993C1D;}.bx{background:#EAF3DE;color:#3B6D11;}
+.bc{background:#FFF3CD;color:#7D4E00;}.bpr{background:var(--g100);color:var(--g600);}
+.fn{font-size:13px;color:var(--g700);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rmb{background:none;border:none;cursor:pointer;color:var(--g400);font-size:18px;padding:0 2px;line-height:1;flex-shrink:0;}
+.rmb:hover{color:var(--g700);}
+.pgb{height:3px;background:var(--g200);border-radius:2px;margin-bottom:1rem;overflow:hidden;display:none;}
+.pgf{height:100%;background:var(--teal);border-radius:2px;transition:width .3s;}
+
+/* 검색 */
+.ss{background:#fff;border:1.5px solid var(--g300);border-radius:var(--rmd);padding:1rem 1.25rem;margin-bottom:.5rem;box-shadow:var(--s1);}
+.srow{display:flex;gap:8px;}
+.sinp{flex:1;height:42px;padding:0 14px;border:1.5px solid var(--g300);border-radius:var(--rsm);font-size:14px;font-family:inherit;background:var(--g50);color:var(--g900);outline:none;transition:all .15s;}
+.sinp:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(29,158,117,.12);}
+.sbtn{height:42px;padding:0 22px;border:none;border-radius:var(--rsm);background:var(--teal);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.sbtn:hover{background:var(--teal-d);}
+.sbtn:disabled{background:var(--g200);color:var(--g500);cursor:not-allowed;}
+.rtag{font-size:11px;padding:2px 9px;border-radius:20px;background:var(--g100);color:var(--g600);cursor:pointer;border:1px solid var(--g200);margin-right:5px;margin-bottom:4px;display:inline-block;}
+.rtag:hover{background:var(--teal-l);color:var(--teal-d);}
+
+/* 검색결과 */
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.add-btn{height:36px;padding:0 16px;border:none;border-radius:var(--rsm);background:var(--teal);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;gap:6px;}
+.add-btn.on{display:inline-flex;}
+.add-btn:hover{background:var(--teal-d);}
+.cnt-b{background:rgba(255,255,255,.3);border-radius:10px;padding:1px 7px;font-size:11px;}
+.cg{margin-bottom:1.5rem;}
+.cdiv{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cline{flex:1;height:1px;border-top:1.5px dashed var(--g300);}
+.cbadge{display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600;box-shadow:var(--s1);flex-shrink:0;}
+.ccnt{font-size:11px;font-weight:400;color:var(--g500);}
+.rc{background:#fff;border:1px solid var(--g200);border-radius:var(--rmd);padding:12px 14px;box-shadow:var(--s1);margin-bottom:8px;}
+.rch{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.rt{font-size:14px;font-weight:600;color:var(--g800);flex:1;}
+.mb{font-size:11px;padding:2px 9px;border-radius:20px;background:var(--teal-l);color:var(--teal-d);font-weight:600;}
+.sr{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.sb{font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;border:1px solid;}
+.sd{font-size:12px;color:var(--g500);}
+.rows-wrap{display:flex;flex-direction:column;gap:2px;}
+.rrow{display:flex;align-items:flex-start;gap:8px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .1s;}
+.rrow:hover{background:var(--g50);}
+.rrow.ck{background:var(--teal-l);}
+.rchk{width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0;margin-top:2px;}
+.rloc{font-size:11px;color:var(--g400);white-space:nowrap;flex-shrink:0;min-width:36px;}
+.rcont{font-size:12px;color:var(--g700);line-height:1.5;flex:1;word-break:break-all;}
+.hl{background:#FFF3CD;color:#7D4E00;border-radius:3px;padding:0 3px;font-weight:600;}
+.more-btn{width:100%;margin-top:6px;padding:8px 12px;background:var(--g50);border:1px dashed var(--g300);border-radius:var(--rsm);font-size:12px;color:var(--teal-d);cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s;text-align:center;}
+.more-btn:hover{background:var(--teal-l);border-color:var(--teal-m);}
+.pg-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;border:1px solid #E24B4A;background:#FEF2F2;color:#991B1B;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;line-height:1.4;}
+.pg-btn:hover{background:#FEE2E2;}
+.pg-btn-off{border-color:var(--g300);background:var(--g100);color:var(--g400);cursor:default;}
+.xl-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;border:1px solid #3B6D11;background:#EAF3DE;color:#3B6D11;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;line-height:1.4;}
+.xl-btn:hover{background:#C0DD97;}
+.xl-btn-off{border-color:var(--g300);background:var(--g100);color:var(--g400);cursor:default;}
+.smsg{text-align:center;padding:2rem;font-size:14px;color:var(--g500);}
+.empty{text-align:center;padding:2rem;background:#fff;border:1px dashed var(--g300);border-radius:var(--rmd);color:var(--g500);font-size:13px;line-height:1.9;}
+
+/* 바구니 섹션 */
+.bsec-wrap{margin-bottom:1.5rem;}
+.bsec{background:#fff;border:1.5px solid var(--g200);border-radius:var(--rlg);margin-bottom:.75rem;box-shadow:var(--s1);overflow:hidden;}
+.bsec-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;border-bottom:1px solid var(--g100);}
+.bsec-hdr:hover{background:var(--g50);}
+.bsec-title{font-size:14px;font-weight:600;flex:1;}
+.bsec-cnt{font-size:11px;padding:2px 9px;border-radius:12px;background:var(--teal);color:#fff;font-weight:500;}
+.bsec-cnt.zero{background:var(--g200);color:var(--g500);}
+.bsec-body{padding:12px 16px;display:none;}
+.bsec-body.open{display:block;}
+.bsec-empty{font-size:12px;color:var(--g400);text-align:center;padding:12px;}
+
+/* 일위대가 바구니 테이블 */
+.ilwi-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;}
+.ilwi-tbl th{background:var(--g50);color:var(--g600);font-size:11px;font-weight:600;padding:6px 6px;text-align:center;border:1px solid var(--g200);white-space:nowrap;}
+.ilwi-tbl td{padding:5px 5px;border:1px solid var(--g200);text-align:center;vertical-align:middle;}
+.ilwi-tbl td input{width:100%;border:1px solid transparent;background:transparent;font-size:12px;font-family:inherit;color:var(--g900);text-align:center;outline:none;padding:2px 3px;border-radius:4px;}
+.ilwi-tbl td input:focus{background:var(--g50);border-color:var(--g300);}
+.ilwi-tbl .qc input{background:#FFFBEB;border:1px solid #F59E0B!important;font-weight:600;color:#92400E;border-radius:4px;}
+.ilwi-tbl .qc input:focus{background:#FFF3CD;}
+.ilwi-tbl .amt{font-weight:600;color:var(--g800);background:var(--g50);}
+.rmibtn{background:none;border:none;cursor:pointer;color:var(--g400);font-size:16px;padding:2px;line-height:1;}
+.rmibtn:hover{color:#E24B4A;}
+
+/* 기타 바구니 목록 */
+.other-list{display:flex;flex-direction:column;gap:5px;}
+.other-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--g50);border-radius:var(--rsm);}
+.other-item-name{font-size:12px;color:var(--g700);flex:1;}
+
+/* 보고서 생성 버튼 */
+.gen-report-btn{width:100%;height:52px;border:none;border-radius:var(--rmd);background:linear-gradient(135deg,#1D9E75,#0C447C);color:#fff;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s;margin-bottom:1.5rem;box-shadow:0 4px 16px rgba(29,158,117,.3);}
+.gen-report-btn:hover{opacity:.9;}
+.gen-report-btn:disabled{background:var(--g300);color:var(--g500);cursor:not-allowed;box-shadow:none;}
+
+/* 엑셀 뷰어 */
+.xv-tbl{border-collapse:collapse;font-size:12px;white-space:nowrap;}
+.xv-tbl th{background:var(--g100);color:var(--g600);font-weight:600;padding:5px 10px;border:1px solid var(--g300);text-align:center;position:sticky;top:0;z-index:1;}
+.xv-tbl td{padding:5px 10px;border:1px solid var(--g200);color:var(--g700);max-width:300px;overflow:hidden;text-overflow:ellipsis;}
+.xv-tbl tr.hl-row td{background:#FFF9C4;color:#7D4E00;font-weight:600;border-color:#F0C000;}
+.xv-tbl tr.hl-row td:first-child{border-left:3px solid #F59E0B;}
+.xv-rnum{color:var(--g400);font-size:11px;text-align:right;background:var(--g50)!important;border-right:1px solid var(--g300)!important;}
+
+.rn{background:var(--teal-l);border:1px solid var(--teal-m);border-radius:var(--rsm);padding:8px 14px;font-size:12px;color:var(--teal-d);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.rn.hid{display:none!important;}
+footer{text-align:center;font-size:11px;color:var(--g400);margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--g200);}
+@media(max-width:650px){.ugrid{grid-template-columns:repeat(3,1fr);}.wmt{font-size:160px;}}
+@media(max-width:420px){.ugrid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="wm"><span class="wmt">뷁</span></div>
+<div class="page">
+
+  <div class="hdr">
+    <div class="logo"><div class="logo-b">뷁</div><h1>설계변경 자동생성</h1></div>
+    <p>파일 업로드 → 검색 → 선택 → 보고서 자동생성 · by 백태진</p>
+  </div>
+
+  <!-- 공사명 -->
+  <div class="gongsa-bar">
+    <span class="gongsa-lbl">📋 공사명</span>
+    <input class="gongsa-inp" id="gongsaNm" type="text" placeholder="예: 송산그린시티 남측지구 조성공사(3공구)">
+  </div>
+
+  <!-- 파일 업로드 -->
+  <div class="lbl" style="text-align:center;margin-bottom:12px;">파일 업로드</div>
+  <div class="ugrid" id="ugrid"></div>
+  <div class="notice-bar">
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#D97706" stroke-width="1.3"/><path d="M7.5 5v3.5" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/><circle cx="7.5" cy="10.5" r=".8" fill="#D97706"/></svg>
+    <span><b>📎 미리보기 버튼이 회색</b>이면 → <b>F5 새로고침</b> 후 파일 재업로드 하거나, <b>파일 제거(×) 후 다시 첨부</b>해 주세요</span>
+  </div>
+
+  <div class="rn hid" id="rn">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#1D9E75" stroke-width="1.4"/><path d="M7 4v3.5l2 1.5" stroke="#1D9E75" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <span id="rnmsg"></span>
+    <span style="margin-left:auto;cursor:pointer;font-size:14px;" onclick="this.closest('.rn').classList.add('hid')">×</span>
+  </div>
+  <div id="flist" class="flist"></div>
+  <div class="pgb" id="pgb"><div class="pgf" id="pgf" style="width:0%"></div></div>
+
+  <!-- 검색 -->
+  <div class="ss">
+    <div class="lbl" style="margin-bottom:10px;">검색어 입력</div>
+    <div class="srow">
+      <input class="sinp" id="si" type="text" placeholder="예: 터파기, 철근, 콘크리트, 보통인부..."/>
+      <button class="sbtn" id="sbtn" onclick="doSearch()" disabled>검색</button>
+    </div>
+  </div>
+  <div id="ra" style="padding:6px 4px 10px;display:none;">
+    <span style="font-size:11px;color:var(--g400);margin-right:6px;">최근검색</span>
+    <span id="rt"></span>
+    <span style="font-size:10px;color:var(--g400);cursor:pointer;margin-left:4px;" onclick="clearRecent()">✕ 지우기</span>
+  </div>
+
+  <!-- 선택 바구니 -->
+  <div class="bsec-wrap" id="bsecWrap" style="display:none;">
+    <div class="lbl" style="margin-bottom:10px;">📂 선택 내역 (보고서에 포함될 항목)</div>
+
+    <!-- 품셈 -->
+    <div class="bsec" id="bsec0">
+      <div class="bsec-hdr" onclick="toggleBsec(0)">
+        <span style="font-size:14px;">📄</span>
+        <span class="bsec-title" style="color:#0F6E56;">품셈 (PDF 스크린샷 → 품셈 시트)</span>
+        <span class="bsec-cnt zero" id="bcnt0">0</span>
+        <span id="barrow0" style="font-size:12px;color:var(--g400);">▾</span>
+      </div>
+      <div class="bsec-body" id="bbody0">
+        <div class="bsec-empty" id="bempty0">품셈 PDF에서 항목을 체크하여 담아주세요 (페이지 이미지로 삽입됩니다)</div>
+        <div class="other-list" id="otherList0"></div>
+      </div>
+    </div>
+
+    <!-- 일위대가 -->
+    <div class="bsec" id="bsec1">
+      <div class="bsec-hdr" onclick="toggleBsec(1)">
+        <span style="font-size:14px;">📑</span>
+        <span class="bsec-title" style="color:#0C447C;">일위대가 (대가호표 + 일위대가목록표)</span>
+        <span class="bsec-cnt zero" id="bcnt1">0</span>
+        <span id="barrow1" style="font-size:12px;color:var(--g400);">▾</span>
+      </div>
+      <div class="bsec-body" id="bbody1">
+        <div class="bsec-empty" id="bempty1">항목을 검색 후 체크박스로 선택하여 담아주세요</div>
+        <div style="overflow-x:auto;">
+          <table class="ilwi-tbl" id="ilwiTbl" style="display:none;min-width:900px;">
+            <thead>
+              <tr>
+                <th style="width:28px;"></th>
+                <th style="width:30px;">NO</th>
+                <th style="min-width:120px;">공종명</th>
+                <th style="min-width:80px;">규격</th>
+                <th style="width:50px;">단위</th>
+                <th style="width:70px;">수량<br><span style="color:#E24B4A;font-size:9px;">★직접입력</span></th>
+                <th style="width:80px;">합계단가</th>
+                <th style="width:80px;">노무비단가</th>
+                <th style="width:80px;">재료비단가</th>
+                <th style="width:80px;">경비단가</th>
+                <th style="width:85px;">합계금액</th>
+              </tr>
+            </thead>
+            <tbody id="ilwiBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 노임단가 -->
+    <div class="bsec" id="bsec2">
+      <div class="bsec-hdr" onclick="toggleBsec(2)">
+        <span style="font-size:14px;">👷</span>
+        <span class="bsec-title" style="color:#633806;">노임단가 (노무비 시트)</span>
+        <span class="bsec-cnt zero" id="bcnt2">0</span>
+        <span id="barrow2" style="font-size:12px;color:var(--g400);">▾</span>
+      </div>
+      <div class="bsec-body" id="bbody2">
+        <div class="bsec-empty" id="bempty2">항목을 검색 후 체크박스로 선택하여 담아주세요</div>
+        <div class="other-list" id="otherList2"></div>
+      </div>
+    </div>
+
+    <!-- 표준시장단가 -->
+    <div class="bsec" id="bsec4">
+      <div class="bsec-hdr" onclick="toggleBsec(4)">
+        <span style="font-size:14px;">📊</span>
+        <span class="bsec-title" style="color:#3C3489;">표준시장단가 (경비 시트)</span>
+        <span class="bsec-cnt zero" id="bcnt4">0</span>
+        <span id="barrow4" style="font-size:12px;color:var(--g400);">▾</span>
+      </div>
+      <div class="bsec-body" id="bbody4">
+        <div class="bsec-empty" id="bempty4">항목을 검색 후 체크박스로 선택하여 담아주세요</div>
+        <div class="other-list" id="otherList4"></div>
+      </div>
+    </div>
+
+    <!-- 자재단가 -->
+    <div class="bsec" id="bsec3">
+      <div class="bsec-hdr" onclick="toggleBsec(3)">
+        <span style="font-size:14px;">🧱</span>
+        <span class="bsec-title" style="color:#712B13;">자재단가 (재료비 시트)</span>
+        <span class="bsec-cnt zero" id="bcnt3">0</span>
+        <span id="barrow3" style="font-size:12px;color:var(--g400);">▾</span>
+      </div>
+      <div class="bsec-body" id="bbody3">
+        <div class="bsec-empty" id="bempty3">항목을 검색 후 체크박스로 선택하여 담아주세요</div>
+        <div class="other-list" id="otherList3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 보고서 생성 버튼 -->
+  <button class="gen-report-btn" id="genBtn" onclick="generateReport()" disabled>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="3" stroke="white" stroke-width="1.5"/><path d="M6 7h8M6 10h8M6 13h5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
+    설계변경 내역서 자동생성 (Excel)
+  </button>
+
+  <!-- 검색 결과 -->
+  <div class="rh">
+    <div class="lbl" style="margin-bottom:0;">검색 결과</div>
+    <button class="add-btn" id="addbtn" onclick="addToBasket()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      선택항목 담기 <span class="cnt-b" id="cntb">0</span>
+    </button>
+  </div>
+  <div id="results"><div class="empty">파일을 업로드하고 검색어를 입력하면<br>카테고리별로 결과가 표시됩니다</div></div>
+
+  <footer>설계변경 자동생성 v1 · by 뷁 (백태진) · PDF.js &amp; SheetJS &amp; ExcelJS 기반</footer>
+</div>
+
+<!-- PDF 뷰어 모달 -->
+<div id="pdfModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:860px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--g200);flex-shrink:0;">
+      <span id="pdfModalTitle" style="font-size:13px;font-weight:600;color:var(--g800);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button onclick="closePdfModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--g500);">×</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--g100);flex-shrink:0;background:var(--g50);">
+      <button id="pdfPrevBtn" onclick="renderPdfPage(pdfViewerPage-1)" style="height:32px;padding:0 14px;border:1px solid var(--g300);border-radius:6px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit;">◀ 이전</button>
+      <span id="pdfPageInfo" style="font-size:13px;font-weight:600;color:var(--g700);min-width:80px;text-align:center;"></span>
+      <button id="pdfNextBtn" onclick="renderPdfPage(pdfViewerPage+1)" style="height:32px;padding:0 14px;border:1px solid var(--g300);border-radius:6px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit;">다음 ▶</button>
+      <span style="font-size:11px;color:var(--g400);">ESC로 닫기</span>
+    </div>
+    <div id="pdfCanvasWrap" style="overflow:auto;flex:1;padding:16px;background:var(--g100);display:flex;justify-content:center;">
+      <canvas id="pdfCanvas" style="border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.15);max-width:100%;"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- 엑셀 뷰어 모달 -->
+<div id="xlsxModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:1100px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--g200);flex-shrink:0;">
+      <span id="xlsxModalTitle" style="font-size:13px;font-weight:600;color:var(--g800);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button onclick="closeXlsxModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--g500);">×</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 18px;border-bottom:1px solid var(--g100);flex-shrink:0;background:var(--g50);">
+      <span style="font-size:12px;font-weight:600;color:#3B6D11;display:inline-flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:14px;height:14px;background:#FFF9C4;border:2px solid #F59E0B;border-radius:2px;"></span>노란색 = 검색된 행
+      </span>
+      <span id="xlsxSheetInfo" style="font-size:12px;color:var(--g500);margin-left:auto;"></span>
+      <span style="font-size:11px;color:var(--g400);">ESC로 닫기</span>
+    </div>
+    <div style="overflow:auto;flex:1;">
+      <table class="xv-tbl" style="width:max-content;min-width:100%;">
+        <thead id="xlsxTableHead"></thead>
+        <tbody id="xlsxTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const CATS=['품셈','일위대가','노임단가','자재단가','표준시장단가'];
+const CC=[
+  {bg:'#E1F5EE',co:'#0F6E56',bd:'#5DCAA5'},
+  {bg:'#E6F1FB',co:'#0C447C',bd:'#85B7EB'},
+  {bg:'#FAEEDA',co:'#633806',bd:'#EF9F27'},
+  {bg:'#FAECE7',co:'#712B13',bd:'#F0997B'},
+  {bg:'#EEEDFE',co:'#3C3489',bd:'#AFA9EC'}
+];
+const SK='sdbc_pdata_v1',RK='sdbc_rec_v1';
+let zFiles=[[],[],[],[],[]],pData=[],recents=[],rowStore=new Map(),groupStore=new Map(),checked=new Set(),fileStore=new Map();
+const basket={0:[],1:[],2:[],3:[],4:[]};
+
+function buildGrid(){
+  document.getElementById('ugrid').innerHTML=CATS.map((n,z)=>`
+    <div class="uz" id="z${z}" onclick="document.getElementById('fi${z}').click()" ondragover="dv(event,${z})" ondragleave="dl(${z})" ondrop="dp(event,${z})">
+      <div class="uz-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 2v9M5 7l3.5-5 3.5 5" stroke="${CC[z].co}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 14h13" stroke="#ADB5BD" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+      <div class="uz-t">${n}</div><div class="uz-h">PDF, XLSX<br>드래그 또는 클릭</div>
+      <div class="uz-c" id="uc${z}"></div>
+      <input type="file" id="fi${z}" multiple accept=".pdf,.xlsx,.xls" style="display:none" onchange="hf(event.target.files,${z})">
+    </div>`).join('');
+}
+
+function dv(e,z){e.preventDefault();document.getElementById('z'+z).classList.add('dov');}
+function dl(z){document.getElementById('z'+z).classList.remove('dov');}
+function dp(e,z){e.preventDefault();dl(z);hf(e.dataTransfer.files,z);}
+
+function hf(files,z){Array.from(files).forEach(f=>{if(!zFiles[z].find(x=>x.name===f.name)){zFiles[z].push(f);fileStore.set(f.name,f);parseFile(f,z);}});updateZone(z);renderFiles();}
+
+function allEntries(){const seen=new Set(),res=[];CATS.forEach((_,z)=>zFiles[z].forEach(f=>{const k=z+'|'+f.name;if(!seen.has(k)){seen.add(k);res.push({z,name:f.name,st:'처리중'});}}));pData.forEach(d=>{const k=d.cat+'|'+d.fileName;if(seen.has(k)){const e=res.find(r=>r.z===d.cat&&r.name===d.fileName);if(e&&e.st==='처리중')e.st='신규';}else{seen.add(k);res.push({z:d.cat,name:d.fileName,st:'저장됨'});}});return res;}
+
+function updateZone(z){const n=allEntries().filter(e=>e.z===z).length;const el=document.getElementById('z'+z),c=document.getElementById('uc'+z);if(n>0){el.classList.add('hf');c.textContent=n+'개 파일';}else{el.classList.remove('hf');c.textContent='';}}
+
+function renderFiles(){const cls={신규:'bx',저장됨:'bc',처리중:'bpr'};document.getElementById('flist').innerHTML=allEntries().map(({z,name,st})=>`<div class="fi"><span class="bdg" style="background:${CC[z].bg};color:${CC[z].co};">${CATS[z]}</span><span class="bdg ${cls[st]||'bpr'}">${st}</span><span class="fn">${esc(name)}</span><button class="rmb" onclick="removeFile(${z},'${name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">×</button></div>`).join('');const all=allEntries();document.getElementById('sbtn').disabled=all.length===0||!all.some(e=>e.st!=='처리중');CATS.forEach((_,z)=>updateZone(z));updateGenBtn();}
+
+function removeFile(z,name){zFiles[z]=zFiles[z].filter(f=>f.name!==name);pData=pData.filter(d=>!(d.cat===z&&d.fileName===name));fileStore.delete(name);savePData();renderFiles();}
+
+const pgb=document.getElementById('pgb'),pgf=document.getElementById('pgf');
+async function parseFile(f,z){pgb.style.display='block';pgf.style.width='20%';try{if(f.name.split('.').pop().toLowerCase()==='pdf')await parsePDF(f,z);else await parseXLSX(f,z);pgf.style.width='100%';savePData();renderFiles();setTimeout(()=>{pgb.style.display='none';pgf.style.width='0%';},500);}catch(e){pgb.style.display='none';console.error(e);alert('파일 처리 오류: '+f.name);}}
+
+async function parsePDF(f,z){const ab=await f.arrayBuffer();const pdf=await pdfjsLib.getDocument({data:ab}).promise;for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const ct=await pg.getTextContent();const byY={};ct.items.forEach(it=>{const y=Math.round(it.transform[5]);if(!byY[y])byY[y]=[];byY[y].push(it.str);});Object.keys(byY).sort((a,b)=>b-a).forEach((y,ri)=>{const line=byY[y].join(' ').trim();if(line)pData.push({cat:z,fileName:f.name,fileType:'PDF',page:i,row:ri,content:line,cells:byY[y]});});pgf.style.width=(20+70*i/pdf.numPages)+'%';}}
+
+async function parseXLSX(f,z){const ab=await f.arrayBuffer();const wb=XLSX.read(ab,{type:'array'});wb.SheetNames.forEach(sn=>{const ws=wb.Sheets[sn];XLSX.utils.sheet_to_json(ws,{header:1,defval:''}).forEach((row,ri)=>{const content=row.join(' ').trim();if(content)pData.push({cat:z,fileName:f.name,fileType:'XLSX',sheet:sn,row:ri+1,content,cells:row.map(c=>String(c))});});});}
+
+function savePData(){try{localStorage.setItem(SK,JSON.stringify(pData.map(d=>({cat:d.cat,fileName:d.fileName,fileType:d.fileType,page:d.page,row:d.row,content:d.content,sheet:d.sheet}))));}catch(e){}}
+function loadPData(){try{const s=JSON.parse(localStorage.getItem(SK)||'[]');if(s.length){pData=s;const fc=new Set(s.map(d=>d.fileName)).size;document.getElementById('rnmsg').textContent=`이전 저장된 ${fc}개 파일 데이터를 불러왔습니다.`;document.getElementById('rn').classList.remove('hid');renderFiles();}}catch(e){}}
+function loadRecents(){try{recents=JSON.parse(localStorage.getItem(RK)||'[]');}catch{recents=[];}renderRecent();}
+function saveRecent(q){recents=[q,...recents.filter(x=>x!==q)].slice(0,10);localStorage.setItem(RK,JSON.stringify(recents));renderRecent();}
+function clearRecent(){recents=[];localStorage.removeItem(RK);renderRecent();}
+function renderRecent(){const a=document.getElementById('ra'),t=document.getElementById('rt');if(!recents.length){a.style.display='none';return;}a.style.display='block';t.innerHTML=recents.map(q=>`<span class="rtag" onclick="qs('${esc(q)}')">${esc(q)}</span>`).join('');}
+function qs(q){document.getElementById('si').value=q;doSearch();}
+
+function makeRowHtml(row,kws){
+  const rid='r'+Date.now()+'_'+Math.random().toString(36).slice(2,6);rowStore.set(rid,row);
+  const hi=kws.reduce((s,kw)=>s.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'),`<span class="hl">${kw}</span>`),esc(row.content));
+  const hasPdf=row.fileType==='PDF',hasXlsx=row.fileType==='XLSX',canView=fileStore.has(row.fileName);
+  const pBtn=hasPdf?`<button class="pg-btn${canView?'':' pg-btn-off'}" onclick="event.stopPropagation();${canView?`openPdfPage('${row.fileName.replace(/'/g,"\\'")}',${row.page})`:'alert(\"파일을 재업로드해 주세요.\")'}"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 4h5M3 6h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>${row.page}p</button>`:'';
+  const xBtn=hasXlsx?`<button class="xl-btn${canView?'':' xl-btn-off'}" onclick="event.stopPropagation();${canView?`openXlsxRow('${row.fileName.replace(/'/g,"\\'")}','${(row.sheet||'').replace(/'/g,"\\'")}',${row.row})`:'alert(\"파일을 재업로드해 주세요.\")'}"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M2 4h7M2 6.5h5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>${row.row}행</button>`:'';
+  return `<div class="rrow" id="rrow_${rid}" onclick="toggleRow('${rid}')"><input type="checkbox" class="rchk" id="chk_${rid}" onclick="event.stopPropagation();toggleRow('${rid}')"><span class="rloc">${row.row}행</span><span class="rcont">${hi}</span>${pBtn}${xBtn}</div>`;
+}
+
+document.getElementById('si').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+function doSearch(){const q=document.getElementById('si').value.trim();if(!q)return;if(!pData.length){document.getElementById('results').innerHTML='<div class="smsg">파일이 처리 중입니다.</div>';return;}saveRecent(q);checked.clear();rowStore.clear();groupStore.clear();updateAddBtn();const kws=q.split(/[\s,]+/).filter(k=>k.length>0);const matched=pData.filter(row=>kws.some(kw=>row.content.includes(kw)));const cg={};matched.forEach(row=>{if(!cg[row.cat])cg[row.cat]={};const fk=row.fileName+'|'+(row.sheet||'p'+row.page);if(!cg[row.cat][fk])cg[row.cat][fk]={fileName:row.fileName,fileType:row.fileType,loc:row.sheet||('p'+row.page),rows:[]};cg[row.cat][fk].rows.push(row);});const cats=Object.keys(cg).map(Number).sort((a,b)=>a-b);if(!cats.length){document.getElementById('results').innerHTML='<div class="smsg">검색 결과가 없습니다.</div>';return;}document.getElementById('results').innerHTML=cats.map(ci=>{const c=CC[ci];const total=Object.values(cg[ci]).reduce((s,f)=>s+f.rows.length,0);const cards=Object.values(cg[ci]).slice(0,15).map(g=>{const src=g.fileType==='PDF'?`${g.fileName} · ${g.loc}페이지`:`${g.fileName} · ${g.loc} 시트`;const first12=g.rows.slice(0,12),rest=g.rows.slice(12);const gid='g'+Date.now()+'_'+Math.random().toString(36).slice(2,6);if(rest.length>0)groupStore.set(gid,{rows:rest,kws,catIdx:ci});const rowsHtml=first12.map(row=>makeRowHtml(row,kws)).join('');const moreBtn=rest.length>0?`<button class="more-btn" id="mbtn_${gid}" onclick="expandGroup('${gid}')">▾ + ${rest.length}개 더 보기</button>`:'';return `<div class="rc"><div class="rch"><span class="rt">${esc(g.fileName)}</span><span class="mb">${g.rows.length}건</span></div><div class="sr"><span class="sb" style="background:${c.bg};color:${c.co};border-color:${c.bd};">${CATS[ci]}</span><span class="sd">${src}</span></div><div class="rows-wrap" id="wrap_${gid}">${rowsHtml}</div>${moreBtn}</div>`;}).join('');return `<div class="cg"><div class="cdiv"><div class="cline"></div><div class="cbadge" style="border-color:${c.bd};color:${c.co};">${CATS[ci]}<span class="ccnt">총 ${total}건</span></div><div class="cline"></div></div>${cards}</div>`;}).join('');}
+
+function expandGroup(gid){const data=groupStore.get(gid);if(!data)return;const wrap=document.getElementById('wrap_'+gid),btn=document.getElementById('mbtn_'+gid);if(!wrap)return;wrap.insertAdjacentHTML('beforeend',data.rows.map(row=>makeRowHtml(row,data.kws)).join(''));if(btn){btn.innerHTML='▴ 접기';btn.onclick=()=>collapseGroup(gid);}}
+function collapseGroup(gid){const data=groupStore.get(gid);if(!data)return;const wrap=document.getElementById('wrap_'+gid),btn=document.getElementById('mbtn_'+gid);if(!wrap)return;Array.from(wrap.querySelectorAll('.rrow')).slice(-data.rows.length).forEach(el=>{const chk=el.querySelector('.rchk');if(chk)checked.delete(chk.id.replace('chk_',''));el.remove();});updateAddBtn();if(btn){btn.innerHTML=`▾ + ${data.rows.length}개 더 보기`;btn.onclick=()=>expandGroup(gid);}}
+function toggleRow(rid){const chk=document.getElementById('chk_'+rid),rrow=document.getElementById('rrow_'+rid);if(checked.has(rid)){checked.delete(rid);if(chk)chk.checked=false;if(rrow)rrow.classList.remove('ck');}else{checked.add(rid);if(chk)chk.checked=true;if(rrow)rrow.classList.add('ck');}updateAddBtn();}
+function updateAddBtn(){const n=checked.size;document.getElementById('cntb').textContent=n;const btn=document.getElementById('addbtn');if(n>0)btn.classList.add('on');else btn.classList.remove('on');}
+
+async function addToBasket(){
+  for(const rid of checked){const row=rowStore.get(rid);if(!row)continue;const cat=row.cat;
+    if(cat===0){
+      // 품셈: PDF면 페이지 기록, XLSX면 행 기록
+      if(!basket[0].find(x=>x._rid===rid))basket[0].push({row,_rid:rid});
+    } else if(cat===1){const data=await extractIlwiData(row);const no='#'+(basket[1].length+1).toString().padStart(3,'0');basket[1].push({row,no,...data,수량:'',_rid:rid});}else if([2,3,4].includes(cat)){if(!basket[cat].find(x=>x._rid===rid))basket[cat].push({row,_rid:rid});}}
+  checked.forEach(rid=>{const chk=document.getElementById('chk_'+rid),rrow=document.getElementById('rrow_'+rid);if(chk)chk.checked=false;if(rrow)rrow.classList.remove('ck');});checked.clear();updateAddBtn();renderBasket();updateGenBtn();
+}
+
+async function extractIlwiData(row){
+  const f=fileStore.get(row.fileName);
+  if(f){
+    const ab=await f.arrayBuffer();
+    const xlsxWb=XLSX.read(ab,{type:'array'});
+    const xlsxWs=xlsxWb.Sheets[row.sheet];
+    if(xlsxWs){
+      const allRows=XLSX.utils.sheet_to_json(xlsxWs,{header:1,defval:''});
+      const startIdx=row.row-1;
+      const firstRow=allRows[startIdx]||[];
+
+      // ── 일위대가 시트: C열(idx2)=품명, F열(idx5)=재료비, G열(idx6)=노무비, H열(idx7)=경비, I열(idx8)=합계
+      if(row.sheet==='일위대가'||row.sheet==='일위대가(목록)'){
+        return{
+          공종명:String(firstRow[2]||''),
+          규격:String(firstRow[3]||''),
+          단위:String(firstRow[4]||''),
+          합계단가:Number(firstRow[8])||0,
+          노무비단가:Number(firstRow[6])||0,
+          재료비단가:Number(firstRow[5])||0,
+          경비단가:Number(firstRow[7])||0
+        };
+      }
+
+      // ── 일위대가상세 시트: E열(idx4)=품명, [합 계] 행에서 가격 추출
+      // [합 계] 행: idx9=재료비금액, idx11=노무비금액, idx13=경비금액, idx15=합계금액
+      const 공종명=String(firstRow[4]||'');
+      const 규격=String(firstRow[5]||'');
+      const 단위=String(firstRow[6]||'');
+      let 재료비단가=0,노무비단가=0,경비단가=0,합계단가=0;
+      for(let i=startIdx+1;i<allRows.length;i++){
+        const r=allRows[i];
+        if(r.join('').trim()==='')break;
+        const c4=String(r[4]||'').trim();
+        if(c4.includes('[합')||c4==='합계'||c4==='합 계'){
+          재료비단가=Number(r[9])||0;
+          노무비단가=Number(r[11])||0;
+          경비단가=Number(r[13])||0;
+          합계단가=Number(r[15])||0;
+          break;
+        }
+      }
+      return{공종명,규격,단위,합계단가,노무비단가,재료비단가,경비단가};
+    }
+  }
+  return{공종명:row.content.substring(0,30),규격:'',단위:'',합계단가:0,노무비단가:0,재료비단가:0,경비단가:0};
+}
+
+function renderBasket(){
+  const hasItems=[0,1,2,3,4].some(c=>basket[c].length>0);document.getElementById('bsecWrap').style.display=hasItems?'block':'none';
+
+  // 품셈 (cat=0)
+  const cnt0=basket[0].length;
+  const bc0=document.getElementById('bcnt0');
+  if(bc0){bc0.textContent=cnt0;bc0.className='bsec-cnt'+(cnt0===0?' zero':'');}
+  const listEl0=document.getElementById('otherList0');
+  if(listEl0){
+    const be0=document.getElementById('bempty0');
+    if(be0)be0.style.display=cnt0>0?'none':'';
+    listEl0.innerHTML=basket[0].map((it,i)=>`
+      <div class="other-item">
+        <button class="rmibtn" onclick="rmBasket(0,${i})">×</button>
+        <span class="bdg" style="background:#FEF2F2;color:#991B1B;font-size:10px;padding:2px 6px;border-radius:4px;">${it.row.fileType==='PDF'?it.row.page+'p':'엑셀'}</span>
+        <span class="other-item-name">${esc(it.row.fileName)} · ${esc(it.row.content.substring(0,50))}</span>
+      </div>`).join('');
+  }
+  const cnt1=basket[1].length;document.getElementById('bcnt1').textContent=cnt1;document.getElementById('bcnt1').className='bsec-cnt'+(cnt1===0?' zero':'');
+  if(cnt1>0){document.getElementById('bempty1').style.display='none';document.getElementById('ilwiTbl').style.display='';document.getElementById('ilwiBody').innerHTML=basket[1].map((it,i)=>`<tr><td><button class="rmibtn" onclick="rmBasket(1,${i})">×</button></td><td style="font-size:11px;color:var(--g500);">${it.no}</td><td><input value="${esc(it.공종명)}" oninput="updBasket(1,${i},'공종명',this.value)"></td><td><input value="${esc(it.규격)}" oninput="updBasket(1,${i},'규격',this.value)"></td><td><input value="${esc(it.단위)}" oninput="updBasket(1,${i},'단위',this.value)" style="text-align:center;"></td><td class="qc"><input type="number" value="${esc(it.수량)}" oninput="updBasket(1,${i},'수량',this.value)" placeholder="입력"></td><td><input type="number" value="${esc(it.합계단가)}" oninput="updBasket(1,${i},'합계단가',this.value)"></td><td><input type="number" value="${esc(it.노무비단가)}" oninput="updBasket(1,${i},'노무비단가',this.value)"></td><td><input type="number" value="${esc(it.재료비단가)}" oninput="updBasket(1,${i},'재료비단가',this.value)"></td><td><input type="number" value="${esc(it.경비단가)}" oninput="updBasket(1,${i},'경비단가',this.value)"></td><td class="amt">${fmt(calcAmt(it))}</td></tr>`).join('');}else{document.getElementById('bempty1').style.display='';document.getElementById('ilwiTbl').style.display='none';}
+  [2,4,3].forEach(cat=>{const cnt=basket[cat].length;document.getElementById('bcnt'+cat).textContent=cnt;document.getElementById('bcnt'+cat).className='bsec-cnt'+(cnt===0?' zero':'');const listEl=document.getElementById('otherList'+cat);if(listEl){document.getElementById('bempty'+cat).style.display=cnt>0?'none':'';listEl.innerHTML=basket[cat].map((it,i)=>`<div class="other-item"><button class="rmibtn" onclick="rmBasket(${cat},${i})">×</button><span class="other-item-name">${esc(it.row.content.substring(0,80))}</span><span style="font-size:10px;color:var(--g400);">${it.row.row}행</span></div>`).join('');}});
+}
+
+function rmBasket(cat,i){basket[cat].splice(i,1);renderBasket();updateGenBtn();}
+function updBasket(cat,i,key,val){basket[cat][i][key]=val;renderBasket();}
+function calcAmt(it){return Math.round((parseFloat(it.수량)||0)*(parseFloat(String(it.합계단가||'').replace(/,/g,''))||0));}
+function fmt(n){return n?n.toLocaleString('ko-KR'):'';}
+function toggleBsec(n){const body=document.getElementById('bbody'+n),arrow=document.getElementById('barrow'+n);const isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(arrow)arrow.textContent=isOpen?'▾':'▴';}
+function updateGenBtn(){document.getElementById('genBtn').disabled=![0,1,2,3,4].some(c=>basket[c].length>0);}
+
+async function generateReport(){
+  const gongsaNm=document.getElementById('gongsaNm').value.trim()||'(공사명 미입력)';
+  const btn=document.getElementById('genBtn');btn.disabled=true;btn.textContent='⏳ 보고서 생성 중...';
+  try{
+    const wb=new ExcelJS.Workbook();
+    addIlwiListSheet(wb,gongsaNm);await addDaegaSheet(wb,gongsaNm);addDansanSheet(wb,gongsaNm);await addNoimSheet(wb,gongsaNm);await addGyeongbiSheet(wb,gongsaNm);await addJaeryoSheet(wb,gongsaNm);await addPdfsimSheet(wb,gongsaNm);
+    const buf=await wb.xlsx.writeBuffer();const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const url=URL.createObjectURL(blob);const a=document.createElement('a');const d=new Date();const ds=d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);a.href=url;a.download=`설계변경_내역서_${gongsaNm.substring(0,15)}_${ds}.xlsx`;a.click();URL.revokeObjectURL(url);alert('✅ 보고서 생성 완료!');
+  }catch(e){console.error(e);alert('보고서 생성 오류: '+e.message);}finally{btn.disabled=false;btn.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="3" stroke="white" stroke-width="1.5"/><path d="M6 7h8M6 10h8M6 13h5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg> 설계변경 내역서 자동생성 (Excel)';updateGenBtn();}
+}
+
+const TF={type:'pattern',pattern:'solid',fgColor:{argb:'FF0F3460'}},HF={type:'pattern',pattern:'solid',fgColor:{argb:'FFD5EAF5'}},YF={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF9C'}},GF={type:'pattern',pattern:'solid',fgColor:{argb:'FFD5F5E3'}};
+
+function mTitle(ws,text,cols){ws.mergeCells(1,1,1,cols);const r=ws.getRow(1);r.getCell(1).value=text;r.height=24;r.eachCell({includeEmpty:true},cell=>{cell.fill=TF;cell.font={bold:true,size:14,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle'};});}
+function mGongsa(ws,gn,cols){/* 공사명 행 제거됨 - 필요시 여기에 추가 */}
+
+function addGongsaSheet(wb,gn){const ws=wb.addWorksheet('공사명');ws.mergeCells('A1:D1');ws.getCell('A1').value='공 사 명';ws.getRow(1).height=36;ws.getRow(1).eachCell({includeEmpty:true},cell=>{cell.fill=TF;cell.font={bold:true,size:16,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle'};});ws.addRow([]);const r=ws.addRow(['공사명',gn]);r.font={bold:true,size:12};r.height=28;ws.addRow([]);ws.addRow(['⭐ 이 시트의 공사명은 모든 시트에 적용됩니다.']).font={size:11,color:{argb:'FF0C447C'},italic:true};ws.columns=[{width:18},{width:60}].map((c,i)=>({width:c.width,key:String(i+1)}));}
+
+function addIlwiListSheet(wb,gn){
+  if(!basket[1].length)return;const ws=wb.addWorksheet('일위대가목록표');const cols=10;mTitle(ws,'일  위  대  가  목  록  표',cols);ws.addRow([]);
+  const hRow=ws.addRow(['NO','공  종  명','규    격','수량','단위','합    계','노  무  비','재  료  비','경    비','비  고']);hRow.height=18;hRow.eachCell(cell=>{cell.fill=HF;cell.font={bold:true,size:10};cell.border={all:{style:'thin'}};cell.alignment={horizontal:'center',vertical:'middle'};});
+  let tH=0,tN=0,tM=0,tE=0;
+  basket[1].forEach((it,i)=>{const q=parseFloat(it.수량)||0,hd=parseFloat(String(it.합계단가||''))||0,nd=parseFloat(String(it.노무비단가||''))||0,md=parseFloat(String(it.재료비단가||''))||0,ed=parseFloat(String(it.경비단가||''))||0;const h=Math.round(q*hd),n=Math.round(q*nd),m=Math.round(q*md),e=Math.round(q*ed);tH+=h;tN+=n;tM+=m;tE+=e;const dr=ws.addRow(['#'+(i+1).toString().padStart(3,'0'),it.공종명||'',it.규격||'',q,it.단위||'',h,n,m,e,'']);dr.eachCell(cell=>{cell.border={all:{style:'thin'}};cell.alignment={vertical:'middle'};});dr.getCell(1).alignment={horizontal:'center'};[4,6,7,8,9].forEach(c=>{const cell=dr.getCell(c);cell.alignment={horizontal:'right'};if(c!==4)cell.numFmt='#,##0';});});
+  const tr=ws.addRow(['','합    계','','','',tH,tN,tM,tE,'']);tr.eachCell(cell=>{cell.fill=GF;cell.font={bold:true};cell.border={all:{style:'thin'}};});[6,7,8,9].forEach(c=>{tr.getCell(c).numFmt='#,##0';tr.getCell(c).alignment={horizontal:'right'};});
+  ws.columns=[8,30,20,7,7,12,12,12,12,10].map((w,i)=>({width:w,key:String(i+1)}));
+}
+
+async function addDaegaSheet(wb,gn){
+  if(!basket[1].length)return;const ws=wb.addWorksheet('대가 호표');const cols=13;mTitle(ws,'일  위  대  가  호  표',cols);ws.addRow([]);
+  const h3=ws.addRow(['공  종  명','규    격','수량','단위','합   계','','노 무 비','','재 료 비','','경    비','','비  고']);
+  const h4=ws.addRow(['','','','','단  가','금  액','단  가','금  액','단  가','금  액','단  가','금  액','']);
+  [h3,h4].forEach(r=>{r.eachCell(cell=>{cell.fill=HF;cell.font={bold:true,size:10};cell.border={all:{style:'thin'}};cell.alignment={horizontal:'center',vertical:'middle'};});});
+  ws.mergeCells(3,5,3,6);ws.mergeCells(3,7,3,8);ws.mergeCells(3,9,3,10);ws.mergeCells(3,11,3,12);
+  [1,2,3,4,13].forEach(c=>{try{ws.mergeCells(3,c,4,c);}catch(e){}});
+
+  for(let idx=0;idx<basket[1].length;idx++){
+    const it=basket[1][idx];const nr=ws.addRow([it.no+'  '+it.공종명]);ws.mergeCells(ws.rowCount,1,ws.rowCount,cols);nr.eachCell(cell=>{cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F0F0'}};cell.font={bold:true,size:11};cell.border={all:{style:'thin'}};});
+    const blockRows=await extractIlwiBlock(it.row);
+    blockRows.forEach(r=>{
+      const c=r.cells||[];
+      const sheetType=r.sheetType||'detail';
+      let rowData,is품명=false,is합계=false;
+
+      if(sheetType==='summary'){
+        // ── 일위대가 시트: c[2]=품명, c[3]=규격, c[4]=단위, c[5]=재료비, c[6]=노무비, c[7]=경비, c[8]=합계
+        const q=parseFloat(it.수량)||1;
+        const hd=Number(c[8])||0,nd=Number(c[6])||0,md=Number(c[5])||0,ed=Number(c[7])||0;
+        rowData=[it.공종명||String(c[2]||''),it.규격||String(c[3]||''),it.수량||'',it.단위||String(c[4]||''),hd,Math.round(hd*q),nd,Math.round(nd*q),md,Math.round(md*q),ed,Math.round(ed*q),''];
+        is품명=true;
+      } else {
+        // ── 일위대가상세 시트
+        const c4=String(c[4]||'').trim();
+        is품명=String(c[1]||'').trim()===''&&String(c[0]||'').trim()!==''&&!c4.includes('[합');
+        is합계=c4.includes('[합')||c4==='합계'||c4==='합 계';
+
+        if(is품명){
+          rowData=[it.공종명||c4,it.규격||String(c[5]||''),it.수량||'',it.단위||String(c[6]||''),'','','','','','','','',''];
+        } else if(is합계){
+          // [합 계] 행: idx9=재료금액, idx11=노무금액, idx13=경비금액, idx15=합계금액
+          const q=parseFloat(it.수량)||1;
+          const h=Number(c[15])||0,n=Number(c[11])||0,m=Number(c[9])||0,e=Number(c[13])||0;
+          rowData=[' 계 ','','','','',Math.round(h*q),'',Math.round(n*q),'',Math.round(m*q),'',Math.round(e*q),''];
+        } else {
+          // 재료/노무/손료 행: idx4=명칭, idx5=규격, idx6=단위, idx7=수량, idx9=재료단가, idx10=재료금액, idx11=노무단가, idx12=노무금액, idx15=합계단가, idx16=합계금액
+          const nq=Number(c[7])||0;
+          const nd=Number(c[11])||0,md=Number(c[9])||0,ed=Number(c[13])||0,hd=Number(c[15])||0;
+          rowData=[String(c[4]||''),String(c[5]||''),nq||'',String(c[6]||''),hd,Math.round(hd*nq),nd,Math.round(nd*nq),md,Math.round(md*nq),ed,Math.round(ed*nq),''];
+        }
+      }
+      const dr=ws.addRow(rowData);if(is품명){dr.eachCell(cell=>{cell.fill=YF;cell.font={bold:true};});}if(is합계){dr.eachCell(cell=>{cell.fill=GF;cell.font={bold:true};});}dr.eachCell(cell=>{cell.border={all:{style:'thin'}};});[3,5,6,7,8,9,10,11,12].forEach(ci=>{const cell=dr.getCell(ci);if(cell.value&&!isNaN(Number(cell.value))){cell.numFmt='#,##0';cell.alignment={horizontal:'right'};}});
+    });
+    ws.addRow([]);
+  }
+  ws.columns=[28,18,7,7,12,12,12,12,12,12,12,12,10].map((w,i)=>({width:w,key:String(i+1)}));
+}
+
+async function extractIlwiBlock(row){
+  const f=fileStore.get(row.fileName);
+  if(f){
+    const ab=await f.arrayBuffer();
+    const xlsxWb=XLSX.read(ab,{type:'array'});
+    const xlsxWs=xlsxWb.Sheets[row.sheet];
+    if(xlsxWs){
+      const allRows=XLSX.utils.sheet_to_json(xlsxWs,{header:1,defval:''});
+      const startIdx=row.row-1;
+
+      // ── 일위대가 시트: 이미 요약행이라 단일 행만 반환
+      if(row.sheet==='일위대가'||row.sheet==='일위대가(목록)'){
+        return [{cells:allRows[startIdx]||[],row:row.row,sheetType:'summary'}];
+      }
+
+      // ── 일위대가상세 시트: 품명행부터 [합 계]까지 블록 추출
+      const block=[];
+      for(let i=startIdx;i<allRows.length;i++){
+        const r=allRows[i];
+        if(i>startIdx&&r.join('').trim()==='')break; // 빈행 = 블록 종료
+        block.push({cells:r,row:i+1,sheetType:'detail'});
+        const c4=String(r[4]||'').trim();
+        if(i>startIdx&&(c4.includes('[합')||c4==='합계'||c4==='합 계'))break;
+      }
+      return block;
+    }
+  }
+  // pData fallback
+  const allRows=pData.filter(d=>d.fileName===row.fileName&&d.sheet===row.sheet).sort((a,b)=>a.row-b.row);
+  const ti=allRows.findIndex(d=>d.row===row.row);
+  if(ti<0)return[{cells:row.cells||[row.content],row:row.row,sheetType:'detail'}];
+  const block=[];
+  for(let i=ti;i<allRows.length;i++){
+    const r=allRows[i];
+    if(i>ti&&r.row-allRows[i-1].row>=2)break;
+    block.push({cells:r.cells||[r.content],row:r.row,sheetType:'detail'});
+    if(r.content.includes('[합')||r.content.includes('합 계'))break;
+  }
+  return block;
+}
+
+function addDansanSheet(wb,gn){const ws=wb.addWorksheet('단,산');mTitle(ws,'단  가  산  출  근  거',8);ws.addRow([]);ws.addRow(['※ 단가산출 내역을 이 시트에 직접 작성하세요.']).font={size:11,color:{argb:'FF0C447C'},italic:true};ws.columns=[20,20,15,15,15,15,15,15].map((w,i)=>({width:w,key:String(i+1)}));}
+
+/* ── 품셈 시트: PDF 페이지를 이미지로 삽입 ── */
+async function addPdfsimSheet(wb,gn){
+  if(!basket[0].length)return;
+  const ws=wb.addWorksheet('품셈');
+  mTitle(ws,'품    셈',4);
+  ws.addRow([]);
+  let curRow=4; // 이미지 삽입 시작 행 (1-based)
+
+  for(let idx=0;idx<basket[0].length;idx++){
+    const it=basket[0][idx];
+    const row=it.row;
+
+    if(row.fileType==='PDF'){
+      // ── PDF: 해당 페이지 이미지로 캡처 후 삽입
+      const f=fileStore.get(row.fileName);
+      if(!f){
+        // 파일 없으면 텍스트로 대체
+        const nr=ws.addRow([`⚠️ ${row.fileName} (${row.page}p) - 파일 재업로드 필요`]);
+        nr.font={size:11,color:{argb:'FFE24B4A'},italic:true};
+        curRow++;
+        continue;
+      }
+      try{
+        const ab=await f.arrayBuffer();
+        const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+        const page=await pdf.getPage(row.page);
+        const canvas=document.createElement('canvas');
+        const scale=1.8;
+        const vp=page.getViewport({scale});
+        canvas.width=vp.width;canvas.height=vp.height;
+        await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+        const imgData=canvas.toDataURL('image/png').split(',')[1];
+        const imgId=wb.addImage({base64:imgData,extension:'png'});
+
+        // 출처 표시 행
+        const srcRow=ws.addRow([`${row.fileName} · ${row.page}페이지`]);
+        srcRow.font={size:9,color:{argb:'FF6C757D'},italic:true};
+        curRow++;
+
+        // 이미지 삽입
+        const imgW=Math.round(vp.width*0.72);
+        const imgH=Math.round(vp.height*0.72);
+        const rowHeightPx=20;
+        const rowsNeeded=Math.ceil(imgH/rowHeightPx)+1;
+
+        ws.addImage(imgId,{
+          tl:{col:0,row:curRow},
+          ext:{width:imgW,height:imgH}
+        });
+        // 이미지 높이만큼 빈 행 추가
+        for(let r=0;r<rowsNeeded;r++){ws.addRow([]);curRow++;}
+        ws.addRow([]);curRow++; // 간격
+      }catch(e){
+        console.error('PDF 렌더링 오류',e);
+        const nr=ws.addRow([`❌ ${row.fileName} (${row.page}p) 렌더링 오류: ${e.message}`]);
+        nr.font={size:11,color:{argb:'FFE24B4A'}};
+        curRow++;
+      }
+    } else {
+      // ── XLSX: 해당 행 내용 텍스트로 삽입
+      const cells=row.cells||[row.content];
+      const dr=ws.addRow(cells);
+      dr.fill=YF;dr.font={bold:true};
+      dr.eachCell(cell=>{cell.border={all:{style:'thin'}};});
+      curRow++;
+    }
+  }
+  ws.getColumn(1).width=80;
+}
+
+async function addNoimSheet(wb,gn){
+  if(!basket[2].length)return;const ws=wb.addWorksheet('노무비');const cols=9;mTitle(ws,'개  별  직  종  노  임  단  가',cols);
+  await addSrcHeader(ws,basket[2][0].row,3,4);
+  basket[2].forEach(it=>{const dr=ws.addRow(it.row.cells||[it.row.content]);dr.eachCell(cell=>{cell.fill=YF;cell.font={bold:true};cell.border={all:{style:'thin'}};});});
+  ws.columns=[8,22,12,12,12,20,12,12,12].map((w,i)=>({width:w,key:String(i+1)}));
+}
+
+async function addGyeongbiSheet(wb,gn){
+  if(!basket[4].length)return;const ws=wb.addWorksheet('경비(표준시장단가)');const cols=10;mTitle(ws,'경  비  (  표  준  시  장  단  가  )',cols);ws.addRow([]);
+  const hRow=ws.addRow(['CODE','명    칭','규      격','수량','단위','합   계','노 무 비','재 료 비','경    비','비  고']);hRow.eachCell(cell=>{cell.fill=HF;cell.font={bold:true,size:10};cell.border={all:{style:'thin'}};cell.alignment={horizontal:'center',vertical:'middle'};});
+  basket[4].forEach(it=>{const c=it.row.cells||[it.row.content];const 재=Number(c[6])||0,노=Number(c[7])||0,경=Number(c[8])||0;const dr=ws.addRow([String(c[2]||''),String(c[3]||''),String(c[4]||''),1,String(c[5]||''),재+노+경,노,재,경,'']);dr.eachCell(cell=>{cell.fill=YF;cell.font={bold:true};cell.border={all:{style:'thin'}};});[6,7,8,9].forEach(ci=>{const cell=dr.getCell(ci);if(!isNaN(Number(cell.value))&&cell.value){cell.numFmt='#,##0';cell.alignment={horizontal:'right'};}});});
+  ws.columns=[16,28,28,7,7,12,12,12,12,10].map((w,i)=>({width:w,key:String(i+1)}));
+}
+
+async function addJaeryoSheet(wb,gn){
+  if(!basket[3].length)return;
+  const ws=wb.addWorksheet('재료비');
+  const cols=22; // A~V열
+
+  const f=basket[3][0].row?fileStore.get(basket[3][0].row.fileName):null;
+  if(f){
+    // 소스 파일에서 1~3행 제목 그대로 가져오기
+    const ab=await f.arrayBuffer();
+    const xlsxWb=XLSX.read(ab,{type:'array'});
+    const xlsxWs=xlsxWb.Sheets[basket[3][0].row.sheet];
+    if(xlsxWs){
+      const allRows=XLSX.utils.sheet_to_json(xlsxWs,{header:1,defval:''});
+      // 1~3행 제목 삽입
+      for(let i=0;i<3;i++){
+        const tRow=ws.addRow((allRows[i]||[]).slice(0,22));
+        if(i===0){
+          tRow.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0F3460'}};
+          tRow.eachCell(cell=>{cell.font={bold:true,size:12,color:{argb:'FFFFFFFF'}};});
+          try{ws.mergeCells(1,1,1,cols);}catch(e){}
+        } else if(i===1){
+          tRow.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF8F9FA'}};
+          tRow.eachCell(cell=>{cell.font={size:9,color:{argb:'FF6C757D'}};});
+        } else {
+          // 3행: 컬럼명
+          tRow.eachCell(cell=>{cell.fill=HF;cell.font={bold:true,size:10};cell.border={all:{style:'thin'}};cell.alignment={horizontal:'center',vertical:'middle'};});
+        }
+      }
+      ws.addRow([]); // 빈행
+
+      // 선택된 행들: A~V열(22열) 전체 삽입
+      basket[3].forEach(it=>{
+        const rowIdx=it.row.row-1; // 0-based
+        const srcRow=(allRows[rowIdx]||[]).slice(0,22); // A~V(22열)
+        const dr=ws.addRow(srcRow);
+        dr.eachCell(cell=>{
+          cell.fill=YF;cell.font={bold:true};cell.border={all:{style:'thin'}};
+        });
+        // 숫자 열 우측정렬 + 천단위
+        srcRow.forEach((v,ci)=>{
+          if(v!==''&&!isNaN(Number(v))){
+            const cell=dr.getCell(ci+1);
+            cell.numFmt='#,##0.##';cell.alignment={horizontal:'right'};
+          }
+        });
+      });
+      // 열 너비
+      const widths=[7,12,20,30,6,10,12,12,8,12,10,8,10,8,10,8,10,8,10,8,14,14];
+      ws.columns=widths.slice(0,cols).map((w,i)=>({width:w,key:String(i+1)}));
+      return;
+    }
+  }
+
+  // fallback: 파일 없으면 기존 방식
+  mTitle(ws,'자  재  조  서  목  록  표',cols);
+  ws.addRow([]);
+  const hRow=ws.addRow(['연번','소분류','품명','규격','단위','단가','인도조건','적용기준','페이지','비고','조달청단가','페이지','유통물가','페이지','거래가격','페이지','물가자료','페이지','물가정보','페이지','기타','근거자료']);
+  hRow.eachCell(cell=>{cell.fill=HF;cell.font={bold:true,size:10};cell.border={all:{style:'thin'}};cell.alignment={horizontal:'center',vertical:'middle'};});
+  basket[3].forEach(it=>{
+    const c=it.row.cells||[it.row.content];
+    const dr=ws.addRow(c.slice(0,22));
+    dr.eachCell(cell=>{cell.fill=YF;cell.font={bold:true};cell.border={all:{style:'thin'}};});
+  });
+  ws.columns=[7,12,20,30,6,10,12,12,8,12,10,8,10,8,10,8,10,8,10,8,14,14].map((w,i)=>({width:w,key:String(i+1)}));
+}
+
+async function addSrcHeader(ws,row,start,end){
+  const f=fileStore.get(row.fileName);if(!f)return;const ab=await f.arrayBuffer();const xlsxWb=XLSX.read(ab,{type:'array'});const xlsxWs=xlsxWb.Sheets[row.sheet];if(!xlsxWs)return;const allRows=XLSX.utils.sheet_to_json(xlsxWs,{header:1,defval:''});
+  for(let i=start-1;i<end;i++){const r=ws.addRow(allRows[i]||[]);r.eachCell(cell=>{cell.fill=HF;cell.font={bold:true,size:10};cell.border={all:{style:'thin'}};});}
+}
+
+let pdfViewerDoc=null,pdfViewerPage=1,pdfViewerTotal=1;
+async function openPdfPage(fileName,pageNum){const f=fileStore.get(fileName);if(!f){alert('파일을 재업로드해 주세요.');return;}const modal=document.getElementById('pdfModal');modal.style.display='flex';document.getElementById('pdfModalTitle').textContent=fileName;document.getElementById('pdfPageInfo').textContent='불러오는 중...';const ab=await f.arrayBuffer();pdfViewerDoc=await pdfjsLib.getDocument({data:ab}).promise;pdfViewerTotal=pdfViewerDoc.numPages;await renderPdfPage(pageNum);}
+async function renderPdfPage(pageNum){if(!pdfViewerDoc)return;pageNum=Math.max(1,Math.min(pageNum,pdfViewerTotal));pdfViewerPage=pageNum;document.getElementById('pdfPageInfo').textContent=pageNum+' / '+pdfViewerTotal;document.getElementById('pdfPrevBtn').disabled=pageNum<=1;document.getElementById('pdfNextBtn').disabled=pageNum>=pdfViewerTotal;const page=await pdfViewerDoc.getPage(pageNum);const canvas=document.getElementById('pdfCanvas'),container=document.getElementById('pdfCanvasWrap');const scale=Math.min((container.clientWidth-32)/page.getViewport({scale:1}).width,2.2);const vp=page.getViewport({scale});canvas.width=vp.width;canvas.height=vp.height;await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;}
+function closePdfModal(){document.getElementById('pdfModal').style.display='none';pdfViewerDoc=null;}
+
+async function openXlsxRow(fileName,sheetName,targetRow){const f=fileStore.get(fileName);if(!f){alert('파일을 재업로드해 주세요.');return;}const modal=document.getElementById('xlsxModal');modal.style.display='flex';document.getElementById('xlsxModalTitle').textContent=fileName+' · '+sheetName;document.getElementById('xlsxTableBody').innerHTML='<tr><td colspan="20" style="text-align:center;padding:2rem;color:var(--g500);">불러오는 중...</td></tr>';const ab=await f.arrayBuffer();const xlsxWb=XLSX.read(ab,{type:'array'});const xlsxWs=xlsxWb.Sheets[sheetName];if(!xlsxWs){document.getElementById('xlsxTableBody').innerHTML='<tr><td>시트 없음</td></tr>';return;}const rows=XLSX.utils.sheet_to_json(xlsxWs,{header:1,defval:''});const start=Math.max(0,targetRow-16),end=Math.min(rows.length,targetRow+15);const sliced=rows.slice(start,end);const maxCols=Math.max(...sliced.map(r=>r.length),1);document.getElementById('xlsxTableHead').innerHTML='<tr><th class="xv-rnum">#</th>'+Array.from({length:maxCols},(_,i)=>`<th>${colLetter(i)}</th>`).join('')+'</tr>';document.getElementById('xlsxTableBody').innerHTML=sliced.map((row,i)=>{const rowNum=start+i+1;const isT=rowNum===targetRow;return `<tr ${isT?'class="hl-row" id="xlsxHL"':''}><td class="xv-rnum">${rowNum}</td>${Array.from({length:maxCols},(_,c)=>`<td title="${esc(String(row[c]||''))}">${esc(String(row[c]||''))}</td>`).join('')}</tr>`;}).join('');document.getElementById('xlsxSheetInfo').textContent=`${targetRow}행 (${start+1}~${end}행 표시)`;setTimeout(()=>{const el=document.getElementById('xlsxHL');if(el)el.scrollIntoView({block:'center',behavior:'smooth'});},100);}
+function colLetter(i){let s='';i++;while(i>0){s=String.fromCharCode(64+(i%26||26))+s;i=Math.floor((i-1)/26);}return s;}
+function closeXlsxModal(){document.getElementById('xlsxModal').style.display='none';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePdfModal();closeXlsxModal();}});
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+buildGrid();loadPData();loadRecents();toggleBsec(1);
+</script>
+</body>
+</html>
