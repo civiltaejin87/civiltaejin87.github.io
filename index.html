@@ -547,6 +547,142 @@ section {
 }
 
 /* ============================================================
+   ARCHIVE / 자료실
+   ============================================================ */
+.archive {
+  margin-top: 48px;
+  padding: 36px 32px;
+  border: 1px solid var(--ink);
+  background: var(--paper-dim);
+  position: relative;
+}
+.archive::before {
+  content: 'DATA';
+  position: absolute;
+  top: -10px;
+  left: 24px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--rust);
+}
+.archive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.archive-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.archive-year {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.archive-year .year-current {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--rust);
+  line-height: 1;
+}
+.archive-year .year-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--concrete);
+  text-transform: uppercase;
+}
+.archive-intro {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  max-width: 720px;
+  margin-bottom: 24px;
+}
+.archive-intro strong {
+  color: var(--rust);
+  font-weight: 600;
+}
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--line-strong);
+  border: 1px solid var(--line-strong);
+}
+.archive-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--paper);
+  text-decoration: none;
+  color: var(--ink);
+  transition: background 0.2s, color 0.2s;
+}
+.archive-item:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.archive-item-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--rust);
+  letter-spacing: 0.05em;
+}
+.archive-item:hover .archive-item-num { color: var(--rust-dim); }
+.archive-item-name {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.archive-item-type {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--concrete);
+}
+.archive-item:hover .archive-item-type { color: var(--rust-dim); }
+.archive-item-icon {
+  font-size: 18px;
+  color: var(--concrete);
+  transition: transform 0.2s, color 0.2s;
+}
+.archive-item:hover .archive-item-icon {
+  color: var(--rust-dim);
+  transform: translateY(2px);
+}
+
+.archive-note {
+  margin-top: 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--concrete);
+  text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  .archive { padding: 28px 20px; }
+  .archive-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
    SKILLS
    ============================================================ */
 .skills-grid {
@@ -852,6 +988,73 @@ section {
       <div class="tool-cta">바로 사용하기</div>
     </a>
 
+  </div>
+
+  <!-- ===== 자료실 ===== -->
+  <div class="archive">
+    <div class="archive-header">
+      <div class="archive-label">DATA ARCHIVE / 기준 자료</div>
+      <div class="archive-year">
+        <span class="year-current">2026</span>
+        <span class="year-meta">최신 기준</span>
+      </div>
+    </div>
+    <p class="archive-intro">
+      위 두 도구를 사용하기 위한 5종 기준 자료입니다. 정부 발간 공개 자료로,
+      필요한 항목만 다운로드하여 도구에 업로드해 사용하세요.
+      <strong>5종을 모두 갖추지 않아도 부분 사용이 가능합니다.</strong>
+    </p>
+
+    <div class="archive-grid">
+      <a href="data/2026/품셈.pdf" class="archive-item" download>
+        <div class="archive-item-num">01</div>
+        <div class="archive-item-info">
+          <div class="archive-item-name">표준품셈</div>
+          <div class="archive-item-type">PDF</div>
+        </div>
+        <div class="archive-item-icon">↓</div>
+      </a>
+
+      <a href="data/2026/일위대가.xlsx" class="archive-item" download>
+        <div class="archive-item-num">02</div>
+        <div class="archive-item-info">
+          <div class="archive-item-name">일위대가</div>
+          <div class="archive-item-type">XLSX</div>
+        </div>
+        <div class="archive-item-icon">↓</div>
+      </a>
+
+      <a href="data/2026/노임단가.xlsx" class="archive-item" download>
+        <div class="archive-item-num">03</div>
+        <div class="archive-item-info">
+          <div class="archive-item-name">노임단가</div>
+          <div class="archive-item-type">XLSX</div>
+        </div>
+        <div class="archive-item-icon">↓</div>
+      </a>
+
+      <a href="data/2026/자재단가.xlsx" class="archive-item" download>
+        <div class="archive-item-num">04</div>
+        <div class="archive-item-info">
+          <div class="archive-item-name">자재단가</div>
+          <div class="archive-item-type">XLSX</div>
+        </div>
+        <div class="archive-item-icon">↓</div>
+      </a>
+
+      <a href="data/2026/표준시장단가.xlsx" class="archive-item" download>
+        <div class="archive-item-num">05</div>
+        <div class="archive-item-info">
+          <div class="archive-item-name">표준시장단가</div>
+          <div class="archive-item-type">XLSX</div>
+        </div>
+        <div class="archive-item-icon">↓</div>
+      </a>
+    </div>
+
+    <p class="archive-note">
+      * 자료는 매년 정부 발표에 따라 갱신됩니다 · 최종 갱신 기준연도: 2026
+    </p>
   </div>
 </section>
 
