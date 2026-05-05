@@ -227,6 +227,37 @@ section {
   padding-bottom: 2px;
 }
 
+.hero-coda {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+  line-height: 1.7;
+  color: var(--ink-soft);
+  max-width: 640px;
+  margin-bottom: 40px;
+  padding-left: 20px;
+  border-left: 2px solid var(--rust);
+  opacity: 0.85;
+  animation: revealUp 1.2s 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.hero-coda .coda-emph {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.hero-coda .coda-emph::before {
+  content: '';
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--rust);
+  border-radius: 50%;
+  margin-right: 10px;
+  vertical-align: middle;
+  transform: translateY(-2px);
+}
+
 .hero-bottom {
   display: flex;
   justify-content: space-between;
@@ -234,7 +265,7 @@ section {
   margin-top: auto;
   flex-wrap: wrap;
   gap: 20px;
-  animation: revealUp 1.2s 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: revealUp 1.2s 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .hero-coords {
   font-family: var(--mono);
@@ -662,7 +693,7 @@ section {
 <section class="hero">
   <div class="hero-meta">
     <span><span class="marker">+</span> PORTFOLIO / 2026</span>
-    <span>DWG · 001 / 005</span>
+    <span>DWG · 001 / 004</span>
     <span>SEOUL, KR</span>
   </div>
 
@@ -673,15 +704,19 @@ section {
   <div class="hero-subname">CIVIL ENGINEER × TOOL BUILDER</div>
 
   <p class="hero-tagline">
-    도면 위에서 일하고,<br>
+    도면 / 내역서 위에서 일하고,<br>
     <strong>코드로 반복을 줄입니다.</strong><br>
-    현장의 비효율을 자동화로 옮기는 토목 엔지니어.
+    현장의 비효율을 <em style="color:var(--rust); font-style:italic;">AI</em>와 함께 자동화로 옮기는 토목 엔지니어.
+  </p>
+  <p class="hero-coda">
+    아직 첫 걸음마 수준이지만, 언젠가 완성되는 그날을 기다리며 ──<br>
+    <span class="coda-emph">우리는 無에서 有를 창조하는 사람들.</span>
   </p>
 
   <div class="hero-bottom">
     <div class="hero-coords">
       <div>+ E 126°58′42″ N 37°33′58″</div>
-      <div>+ EST. 20XX · BASED IN SEOUL</div>
+      <div>+ EST. 2020.09.01 · CIVIL ENGINEER SINCE</div>
     </div>
     <div class="hero-scroll">
       SCROLL <span class="line"></span> 아래로
@@ -708,9 +743,10 @@ section {
 
     <div class="about-text">
       <p>
-        토목 현장에서 일하며, 반복적으로 손이 가는 업무를 직접 코드로 줄여 왔습니다.
-        품셈 검색, 일위대가 작성, 설계변경 보고서 — 매번 같은 양식을 다시 짜는 일을
-        한 번 만들어 두고 모두가 쓸 수 있도록 만드는 데에 관심이 많습니다.
+        2020년 9월, 토목 엔지니어로 첫 발을 디딘 이후
+        품질과 시공·공무 양쪽을 두루 거치며 현장의 흐름을 익혀왔습니다.
+        매번 같은 양식을 다시 짜는 반복 업무를 한 번 만들어 두고 모두가 쓸 수 있도록
+        만드는 데에 관심이 많습니다.
       </p>
       <p>
         개발 전공자는 아니지만, 단일 HTML 파일 형태의 가벼운 도구로
@@ -734,59 +770,45 @@ section {
 
   <div class="career-list">
 
-    <!-- ⬇⬇⬇ 본인 정보로 수정하세요 ⬇⬇⬇ -->
-
     <div class="career-item">
-      <div class="career-num">FS · 005</div>
+      <div class="career-num">FS · 04</div>
       <div class="career-info">
-        <h3>○○○ 도로 확장공사 현장</h3>
-        <div class="meta">SITE ENGINEER · ROAD WORK · KOREA</div>
-        <p class="desc">2차로 → 4차로 확장. 토공·배수공·구조물공 시공 관리, 설계변경 다수 처리.</p>
+        <h3>수원국토 관내 서부권역 긴급 보수공사</h3>
+        <div class="meta">차장 · 현장대리인 · 시공 (관리 / 공무)</div>
+        <p class="desc">긴급 보수공사 현장의 시공 관리 및 공무 업무 총괄. 현장대리인으로서 전반적인 현장 운영을 담당.</p>
       </div>
-      <div class="career-period">2024 — 현재</div>
+      <div class="career-period">진행 중<br><span style="color:var(--rust); font-size:10px;">● ON-SITE</span></div>
     </div>
 
     <div class="career-item">
-      <div class="career-num">FS · 004</div>
+      <div class="career-num">FS · 03</div>
       <div class="career-info">
-        <h3>○○ 신도시 단지 조성공사</h3>
-        <div class="meta">FIELD ENGINEER · SITE DEVELOPMENT</div>
-        <p class="desc">대지 조성 및 우·오수 관로 시공. 일위대가 작성 및 기성 산출 담당.</p>
+        <h3>송산그린시티 남측지구 조성공사 3공구</h3>
+        <div class="meta">차장 · 시공 (관리 / 공무)</div>
+        <p class="desc">대규모 단지 조성공사 중 우수관로 부계약 업체로 시공 관리 및 공무 담당.</p>
       </div>
-      <div class="career-period">2022 — 2024</div>
+      <div class="career-period">2025.09.28 ~</div>
     </div>
 
     <div class="career-item">
-      <div class="career-num">FS · 003</div>
+      <div class="career-num">FS · 02</div>
       <div class="career-info">
-        <h3>○○천 하천정비공사</h3>
-        <div class="meta">JUNIOR ENGINEER · RIVER WORK</div>
-        <p class="desc">호안 및 제방 공사. 물량 산출 및 시공 도면 검토.</p>
+        <h3>고치절골 진입도로 확포장공사</h3>
+        <div class="meta">과장 · 현장대리인 · 품질</div>
+        <p class="desc">진입도로 확포장공사의 품질 관리 총괄. 현장대리인으로 시공 전 과정의 품질 기준 적용 및 관리.</p>
       </div>
-      <div class="career-period">2020 — 2022</div>
+      <div class="career-period">2023.06.15 ~</div>
     </div>
 
     <div class="career-item">
-      <div class="career-num">FS · 002</div>
+      <div class="career-num">FS · 01</div>
       <div class="career-info">
-        <h3>○○ 교량 가설공사</h3>
-        <div class="meta">JUNIOR ENGINEER · BRIDGE</div>
-        <p class="desc">PSC 빔 가설 및 교량 받침 시공 보조. 시공계획서 작성 참여.</p>
+        <h3>민군복합형 관광미항 진입도로 개설공사</h3>
+        <div class="meta">대리 · 품질</div>
+        <p class="desc">국가 주요 인프라 사업의 진입도로 개설공사 품질 관리 담당. 첫 품질 직무 경험.</p>
       </div>
-      <div class="career-period">2019 — 2020</div>
+      <div class="career-period">2022.07.25 ~</div>
     </div>
-
-    <div class="career-item">
-      <div class="career-num">FS · 001</div>
-      <div class="career-info">
-        <h3>○○ 공동주택 부지조성</h3>
-        <div class="meta">INTERN · SITE PREPARATION</div>
-        <p class="desc">최초 현장 경험. 측량·검측 보조 및 일일공정보고 작성.</p>
-      </div>
-      <div class="career-period">2018 — 2019</div>
-    </div>
-
-    <!-- ⬆⬆⬆ 본인 정보로 수정하세요 ⬆⬆⬆ -->
 
   </div>
 </section>
@@ -898,7 +920,7 @@ section {
 
     <div class="footer">
       <div>© 2026 BAEK TAEJIN · BUILT WITH HTML &amp; INTENTION</div>
-      <div>DWG · 005 / 005 · END OF DRAWING</div>
+      <div>DWG · 04 / 04 · END OF DRAWING</div>
     </div>
   </div>
 </section>
